@@ -206,13 +206,25 @@ punctuationPause = true;
 
 ---
 
+## Deployment (S3)
+
+**Bucket:** `bible-reading.online` (account `668461484419`, `us-east-1`)  
+**Live layout:** root-level static site — `index.html`, `manifest.json`, `sw.js`, `css/styles.css`, `js/script.js`, `js/i18n.js`
+
+```bash
+python3 deploy.py --dry-run   # preview
+python3 deploy.py -y          # upload
+```
+
+Optional: `BIBLE_RSVP_CLOUDFRONT_ID=<id>` for cache invalidation after deploy.
+
 ## Deployment Checklist
 
-1. Upload all static files to S3
-2. CloudFront + OAC, HTTPS
+1. Run `deploy.py` (or manual upload) to S3
+2. CloudFront + OAC, HTTPS (if used — set invalidation env var)
 3. Replace AdSense placeholder in `index.html`
 4. Plan migration from `bible-api.com` to static JSON on same origin
-5. Invalidate CloudFront after updates
+5. Hard-refresh / SW cache bump after deploy (`sw.js` `CACHE_NAME`)
 
 ---
 
@@ -234,6 +246,8 @@ All times are **UTC**. Newest entries first. Every agent session that changes co
 
 | Date | Time (UTC) | Author | Files | Summary |
 |------|------------|--------|-------|---------|
+| 2026-06-04 | 21:19:08 | Agent (Grok) | `deploy.py`, `agent.md` | S3 deploy script for `bible-reading.online` (sync app assets, dry-run, optional CloudFront invalidation). |
+| 2026-06-04 | 20:48:58 | Agent (Grok) | `js/i18n.js`, `js/script.js`, `index.html`, `css/styles.css`, `sw.js` | UI language switch (EN/PT flags, system locale detect, default EN). Book names match Bible language only. Added PD translations: WEB, ASV, BBE, Darby (+ KJV, Almeida). |
 | 2026-06-04 | 19:55:07 | Agent (Grok) | `js/script.js`, `index.html` | Default WPM 250 (`DEFAULT_WPM`). Fixed verse/word stats: use API `data.verses` via `buildVersesFromStructured()` (API `text` has no verse numbers; regex fallback was counting 1 verse). |
 | 2026-06-04 | 19:42:09 | Agent (Grok) | `README.md` | Rewrote for repo visitors and supporters: what the app is, features, how to try, support section; moved dev/deploy/API details to brief pointer to `agent.md`. |
 | 2026-06-04 | 19:35:00 | Agent (Grok) | `agent.md` | Clarified WPM/chunk controls: in-modal buttons only; noted `instruction.md` vs `handleKeyboard` mismatch on Arrow Up/Down. |
@@ -257,4 +271,4 @@ Copy and prepend a new row for each change:
 
 ---
 
-*Last updated: 2026-06-04 19:55:07 UTC*
+*Last updated: 2026-06-04 21:19:08 UTC*

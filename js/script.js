@@ -2,6 +2,57 @@
 const BIBLE_API = 'https://bible-api.com/';
 const DEFAULT_WPM = 250;
 
+// Public-domain translations available on bible-api.com
+const bibleVersions = [
+    { id: 'kjv', lang: 'en', nameKey: 'versionKjv' },
+    { id: 'web', lang: 'en', nameKey: 'versionWeb' },
+    { id: 'asv', lang: 'en', nameKey: 'versionAsv' },
+    { id: 'bbe', lang: 'en', nameKey: 'versionBbe' },
+    { id: 'darby', lang: 'en', nameKey: 'versionDarby' },
+    { id: 'almeida', lang: 'pt', nameKey: 'versionAlmeida' }
+];
+
+function getBibleLang() {
+    const v = bibleVersions.find(b => b.id === versionSelect.value);
+    return v ? v.lang : 'en';
+}
+
+function getBookDisplayName(book) {
+    return getBibleLang() === 'pt' ? book.ptName : book.name;
+}
+
+function formatPreviewStats(wordCount, verseCount) {
+    const verseLabel = verseCount === 1 ? I18n.t('verseSingular') : I18n.t('verses');
+    return I18n.t('previewStats', { words: wordCount, verses: verseCount, verseLabel });
+}
+
+function populateVersionSelect() {
+    const prev = versionSelect.value;
+    versionSelect.innerHTML = '';
+    const enGroup = document.createElement('optgroup');
+    enGroup.label = I18n.t('englishTranslations');
+    const ptGroup = document.createElement('optgroup');
+    ptGroup.label = I18n.t('portugueseTranslations');
+
+    bibleVersions.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = I18n.t(v.nameKey);
+        (v.lang === 'pt' ? ptGroup : enGroup).appendChild(opt);
+    });
+
+    versionSelect.appendChild(enGroup);
+    versionSelect.appendChild(ptGroup);
+    const valid = [...versionSelect.options].some(o => o.value === prev);
+    versionSelect.value = valid ? prev : 'kjv';
+}
+
+function refreshPauseButtonLabel() {
+    if (!rsvpModal.classList.contains('hidden')) {
+        pauseBtn.textContent = isPlaying ? I18n.t('pause') : I18n.t('resume');
+    }
+}
+
 // Books data (66 books) - same as before for brevity, abbreviated here but full in real file
 const books = [
     { slug: 'genesis', name: 'Genesis', ptName: 'Gênesis', chapters: 50, testament: 'OT' },
@@ -190,20 +241,21 @@ function renderHistory() {
     container.innerHTML = '';
     
     if (history.length === 0) {
-        container.innerHTML = '<p style="opacity:0.7; font-size:0.9rem;">Nenhuma leitura ainda. Comece lendo um capítulo!</p>';
+        container.innerHTML = `<p style="opacity:0.7; font-size:0.9rem;">${I18n.t('historyEmpty')}</p>`;
         return;
     }
-    
+
+    const locale = I18n.getLang() === 'pt' ? 'pt-BR' : 'en-US';
     history.slice(0, 5).forEach(entry => {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = `
             <div>
                 <strong>${entry.reference}</strong><br>
-                <span class="date">${new Date(entry.date).toLocaleDateString('pt-BR')}</span>
+                <span class="date">${new Date(entry.date).toLocaleDateString(locale)}</span>
             </div>
             <div style="text-align:right; font-size:0.8rem;">
-                ${entry.wordsRead} palavras<br>
+                ${entry.wordsRead} ${I18n.t('words')}<br>
                 <span style="color:#22c55e;">${Math.round(entry.wordsRead / DEFAULT_WPM)} min</span>
             </div>
         `;
@@ -212,7 +264,7 @@ function renderHistory() {
 }
 
 function clearHistory() {
-    if (confirm('Limpar todo o histórico de leitura?')) {
+    if (confirm(I18n.t('clearHistoryConfirm'))) {
         localStorage.removeItem('biblia-rsvp-history');
         renderHistory();
         updateStreak();
@@ -319,13 +371,18 @@ function updateRSVPUI() {
     document.getElementById('rsvp-wpm').textContent = `${wpm} WPM`;
     
     const currentVerseNum = getCurrentVerse();
-    document.getElementById('rsvp-verse').textContent = `Verso ${currentVerseNum}`;
+    document.getElementById('rsvp-verse').textContent = `${I18n.t('verse')} ${currentVerseNum}`;
 }
 
 // ==================== INITIALIZATION ====================
 function init() {
     populateBooks();
-    
+
+    versionSelect.addEventListener('change', () => {
+        populateBooks();
+        saveSettings();
+    });
+
     // Event listeners
     bookSelect.addEventListener('change', updateChapterOptions);
     loadBtn.addEventListener('click', loadChapter);
@@ -384,22 +441,26 @@ function init() {
 
 // Populate book dropdown (same as before)
 function populateBooks() {
+    const selectedSlug = bookSelect.value;
     bookSelect.innerHTML = '';
     const otOptgroup = document.createElement('optgroup');
-    otOptgroup.label = 'Antigo Testamento';
+    otOptgroup.label = I18n.t('oldTestament');
     const ntOptgroup = document.createElement('optgroup');
-    ntOptgroup.label = 'Novo Testamento';
-    
+    ntOptgroup.label = I18n.t('newTestament');
+
     books.forEach(book => {
         const option = document.createElement('option');
         option.value = book.slug;
-        option.textContent = `${book.name} (${book.ptName})`;
+        option.textContent = getBookDisplayName(book);
         if (book.testament === 'OT') otOptgroup.appendChild(option);
         else ntOptgroup.appendChild(option);
     });
-    
+
     bookSelect.appendChild(otOptgroup);
     bookSelect.appendChild(ntOptgroup);
+    if (selectedSlug && books.some(b => b.slug === selectedSlug)) {
+        bookSelect.value = selectedSlug;
+    }
 }
 
 function updateChapterOptions() {
@@ -426,7 +487,7 @@ async function loadChapterData(bookSlug, chapterNum) {
 
     try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Falha ao carregar capítulo');
+        if (!res.ok) throw new Error(I18n.t('loadChapterError'));
 
         const data = await res.json();
 
@@ -446,7 +507,7 @@ async function loadChapterData(bookSlug, chapterNum) {
         }
 
         previewReference.textContent = currentReference;
-        previewStats.textContent = `${currentWords.length} palavras • ${verses.length} versículos`;
+        previewStats.textContent = formatPreviewStats(currentWords.length, verses.length);
 
         previewCard.classList.remove('hidden');
         settingsCard.classList.remove('hidden');
@@ -467,7 +528,7 @@ async function loadChapterData(bookSlug, chapterNum) {
         return true;
 
     } catch (err) {
-        alert('Erro ao carregar o capítulo. Verifique sua conexão.\n' + err.message);
+        alert(I18n.t('loadChapterError') + '\n' + err.message);
         console.error(err);
         return false;
     }
@@ -478,44 +539,57 @@ async function loadChapter() {
     const bookSlug = bookSelect.value;
     const chapter = parseInt(chapterSelect.value);
     loadBtn.disabled = true;
-    loadBtn.textContent = 'Carregando...';
+    loadBtn.textContent = I18n.t('loadingChapter');
 
     await loadChapterData(bookSlug, chapter);
 
     loadBtn.disabled = false;
-    loadBtn.textContent = 'Carregar Capítulo';
+    loadBtn.textContent = I18n.t('loadChapter');
 }
 
-// Sample data
-function loadSample() {
-    const sampleText = "16 For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.";
-    
-    currentReference = "John 3:16 (Sample)";
-    const cleanText = sampleText.replace(/\d+\s/g, ' ').trim();
-    currentWords = cleanText.split(/\s+/).filter(Boolean);
-    
-    parseVerses(sampleText);
-    
-    previewReference.textContent = currentReference;
-    previewText.innerHTML = sampleText;
-    previewStats.textContent = `${currentWords.length} palavras • 1 versículo`;
-    
-    previewCard.classList.remove('hidden');
-    settingsCard.classList.remove('hidden');
-    
-    versionSelect.value = 'kjv';
-    
-    saveHistory({
-        reference: currentReference,
-        date: new Date().toISOString(),
-        wordsRead: currentWords.length
-    });
+// Sample: John 3:16 from selected Bible version
+async function loadSample() {
+    const version = versionSelect.value;
+    try {
+        const res = await fetch(`${BIBLE_API}john+3:16?translation=${version}`);
+        if (!res.ok) throw new Error(I18n.t('loadChapterError'));
+        const data = await res.json();
+
+        currentReference = I18n.t('sampleReference');
+        if (data.verses && data.verses.length > 0) {
+            buildVersesFromStructured(data.verses);
+            previewText.innerHTML = data.verses
+                .map(v => `<sup>${v.verse}</sup> ${(v.text || '').replace(/\n/g, ' ').trim()}`)
+                .join(' ');
+        } else {
+            const rawText = data.text || '';
+            const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
+            currentWords = cleanText.split(/\s+/).filter(Boolean);
+            parseVerses(rawText);
+            previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
+        }
+
+        previewReference.textContent = currentReference;
+        previewStats.textContent = formatPreviewStats(currentWords.length, verses.length);
+
+        previewCard.classList.remove('hidden');
+        settingsCard.classList.remove('hidden');
+
+        saveHistory({
+            reference: currentReference,
+            date: new Date().toISOString(),
+            wordsRead: currentWords.length
+        });
+    } catch (err) {
+        alert(I18n.t('loadChapterError'));
+        console.error(err);
+    }
 }
 
 // Start RSVP
 function startRSVP() {
     if (!currentWords.length) {
-        alert('Por favor, carregue um capítulo primeiro.');
+        alert(I18n.t('loadChapterFirst'));
         return;
     }
     
@@ -531,8 +605,8 @@ function startRSVP() {
     document.getElementById('current-wpm').textContent = wpm + ' WPM';
     document.getElementById('current-chunk').textContent = chunkSize;
     
-    pauseBtn.textContent = '⏸ Pausar';
-    
+    pauseBtn.textContent = I18n.t('pause');
+
     updateRSVPUI();
     showNextWord();
 }
@@ -567,10 +641,10 @@ function togglePause() {
     isPlaying = !isPlaying;
     
     if (isPlaying) {
-        pauseBtn.textContent = '⏸ Pausar';
+        pauseBtn.textContent = I18n.t('pause');
         showNextWord();
     } else {
-        pauseBtn.textContent = '▶ Continuar';
+        pauseBtn.textContent = I18n.t('resume');
         clearTimeout(timer);
     }
 }
@@ -581,17 +655,16 @@ function finishReading() {
     
     rsvpWord.innerHTML = `
         <div style="text-align:center">
-            <div style="font-size:1.8rem; margin-bottom:1rem; color:#d4af37">Capítulo concluído! 🙌</div>
-            <div>Você leu <strong>${currentWords.length}</strong> palavras</div>
+            <div style="font-size:1.8rem; margin-bottom:1rem; color:#d4af37">${I18n.t('chapterComplete')}</div>
+            <div>${I18n.t('youRead')} <strong>${currentWords.length}</strong> ${I18n.t('words')}</div>
             <div style="margin-top:1.5rem; font-size:0.95rem; opacity:0.8">
-                Aprox. ${(currentWords.length / wpm).toFixed(1)} minutos
+                ${I18n.t('approxMinutes', { minutes: (currentWords.length / wpm).toFixed(1) })}
             </div>
         </div>
     `;
-    
-    // Update history with actual read time if needed
+
     setTimeout(() => {
-        if (confirm('Parabéns! Deseja ler outro capítulo?')) {
+        if (confirm(I18n.t('readAnotherConfirm'))) {
             closeRSVP();
             // Could auto open next chapter logic here
         } else {
@@ -634,7 +707,7 @@ async function goToNextChapter() {
             }
             return;
         } else {
-            alert("Você chegou ao último capítulo da Bíblia!");
+            alert(I18n.t('lastChapterBible'));
             return;
         }
     }
@@ -672,7 +745,7 @@ async function goToPreviousChapter() {
             }
             return;
         } else {
-            alert("Você está no primeiro capítulo da Bíblia!");
+            alert(I18n.t('firstChapterBible'));
             return;
         }
     }
@@ -711,7 +784,7 @@ function setupRSVPControls() {
     document.getElementById('restart-btn').addEventListener('click', () => {
         currentIndex = 0;
         isPlaying = true;
-        pauseBtn.textContent = '⏸ Pausar';
+        pauseBtn.textContent = I18n.t('pause');
         showNextWord();
     });
     
@@ -815,7 +888,10 @@ function loadSavedSettings() {
     
     try {
         const s = JSON.parse(saved);
-        if (s.version) versionSelect.value = s.version;
+        if (s.version) {
+            versionSelect.value = s.version;
+            populateBooks();
+        }
         if (s.book) bookSelect.value = s.book;
         if (s.chapter) {
             setTimeout(() => {
@@ -832,9 +908,19 @@ function loadSavedSettings() {
 }
 
 // Initialize everything
+I18n.init();
+populateVersionSelect();
 init();
 setupRSVPControls();
 setupVerseNavigation();
+
+window.addEventListener('uilangchange', () => {
+    populateVersionSelect();
+    populateBooks();
+    renderHistory();
+    refreshPauseButtonLabel();
+    loadBtn.textContent = I18n.t('loadChapter');
+});
 
 // Expose for debugging
 window.BibliaRSVP = { currentWords, startRSVP, getCurrentVerse };

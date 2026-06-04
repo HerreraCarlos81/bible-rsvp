@@ -3,67 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Bíblia RSVP - Leitura Rápida da Palavra com RSVP. Versões KJV e Almeida.">
+    <meta name="description" content="Bible RSVP — Rapid Serial Visual Presentation reading. KJV, WEB, ASV, Almeida and more.">
     <meta name="theme-color" content="#0f172a">
-    <title>Bíblia RSVP • Leitura Rápida da Palavra</title>
+    <title>Bible RSVP • Focused Scripture Reading</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
                     <span class="logo-icon">✝</span>
                     <div>
-                        <h1>Bíblia RSVP</h1>
-                        <p class="tagline">Leitura Rápida • Foco na Palavra</p>
+                        <h1 data-i18n="appName">Bible RSVP</h1>
+                        <p class="tagline" data-i18n="tagline">Speed Reading • Focus on the Word</p>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button id="install-btn" class="btn btn-secondary hidden">Instalar App</button>
-                    <button id="sample-btn" class="btn btn-secondary">Carregar Amostra (João 3:16)</button>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button id="install-btn" class="btn btn-secondary hidden" data-i18n="installApp">Install App</button>
+                        <button id="sample-btn" class="btn btn-secondary" data-i18n="loadSample">Load Sample (John 3:16)</button>
+                    </div>
+                    <div class="lang-switcher" role="group" aria-label="Interface language">
+                        <button type="button" class="lang-btn active" data-lang="en" title="English" aria-label="English">
+                            <span class="lang-flag" aria-hidden="true">🇺🇸</span>
+                        </button>
+                        <button type="button" class="lang-btn" data-lang="pt" title="Português" aria-label="Português">
+                            <span class="lang-flag" aria-hidden="true">🇧🇷</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- Main Controls -->
         <main class="main-content">
             <div class="card selector-card">
-                <h2>Selecione o Capítulo</h2>
+                <h2 data-i18n="selectChapter">Select Chapter</h2>
                 
                 <div class="form-grid">
-                    <!-- Version -->
                     <div class="form-group">
-                        <label for="version">Versão da Bíblia</label>
-                        <select id="version" class="form-control">
-                            <option value="kjv">King James Version (KJV) - Inglês</option>
-                            <option value="almeida">João Ferreira de Almeida - Português</option>
-                        </select>
+                        <label for="version" data-i18n="bibleVersion">Bible Version</label>
+                        <select id="version" class="form-control"></select>
                     </div>
 
-                    <!-- Book -->
                     <div class="form-group">
-                        <label for="book">Livro</label>
-                        <select id="book" class="form-control">
-                            <!-- Populated by JS -->
-                        </select>
+                        <label for="book" data-i18n="book">Book</label>
+                        <select id="book" class="form-control"></select>
                     </div>
 
-                    <!-- Chapter -->
                     <div class="form-group">
-                        <label for="chapter">Capítulo</label>
-                        <select id="chapter" class="form-control">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <label for="chapter" data-i18n="chapter">Chapter</label>
+                        <select id="chapter" class="form-control"></select>
                     </div>
                 </div>
 
-                <button id="load-btn" class="btn btn-primary btn-large">Carregar Capítulo</button>
+                <button id="load-btn" class="btn btn-primary btn-large" data-i18n="loadChapter">Load Chapter</button>
             </div>
 
-            <!-- Chapter Preview -->
             <div id="preview-card" class="card preview-card hidden">
                 <div class="preview-header">
                     <h3 id="preview-reference"></h3>
@@ -74,35 +71,31 @@
                 <div id="preview-text" class="preview-text"></div>
             </div>
 
-            <!-- RSVP Settings -->
             <div id="settings-card" class="card settings-card hidden">
-                <h3>Configurações de Leitura Rápida (RSVP)</h3>
+                <h3 data-i18n="rsvpSettings">Speed Reading (RSVP) Settings</h3>
                 
                 <div class="settings-grid">
-                    <!-- WPM -->
                     <div class="setting">
                         <div class="setting-header">
-                            <label>Velocidade (WPM)</label>
+                            <label data-i18n="speedWpm">Speed (WPM)</label>
                             <span id="wpm-value" class="setting-value">250</span>
                         </div>
                         <input type="range" id="wpm-slider" min="100" max="1200" step="10" value="250">
-                        <div class="setting-hint">Palavras por minuto</div>
+                        <div class="setting-hint" data-i18n="wordsPerMinute">Words per minute</div>
                     </div>
 
-                    <!-- Chunk Size -->
                     <div class="setting">
-                        <label>Tamanho do Chunk</label>
+                        <label data-i18n="chunkSize">Chunk Size</label>
                         <div class="chunk-buttons">
-                            <button class="chunk-btn active" data-chunk="1">1 palavra</button>
-                            <button class="chunk-btn" data-chunk="2">2 palavras</button>
-                            <button class="chunk-btn" data-chunk="3">3 palavras</button>
+                            <button class="chunk-btn active" data-chunk="1" data-i18n="chunk1">1 word</button>
+                            <button class="chunk-btn" data-chunk="2" data-i18n="chunk2">2 words</button>
+                            <button class="chunk-btn" data-chunk="3" data-i18n="chunk3">3 words</button>
                         </div>
                     </div>
 
-                    <!-- Font Size -->
                     <div class="setting">
                         <div class="setting-header">
-                            <label>Tamanho da Fonte</label>
+                            <label data-i18n="fontSize">Font Size</label>
                             <span id="font-value" class="setting-value">3.5rem</span>
                         </div>
                         <input type="range" id="font-slider" min="2" max="6" step="0.2" value="3.5">
@@ -112,55 +105,36 @@
                 <div class="setting advanced">
                     <label>
                         <input type="checkbox" id="punctuation-pause" checked>
-                        Pausar mais em pontuação (. , ; ! ?)
+                        <span data-i18n="punctuationPause">Pause longer at punctuation (. , ; ! ?)</span>
                     </label>
                 </div>
 
-                <button id="start-btn" class="btn btn-primary btn-large btn-start">
-                    ▶ Iniciar Leitura Rápida
-                </button>
+                <button id="start-btn" class="btn btn-primary btn-large btn-start" data-i18n="startReading">▶ Start Speed Reading</button>
             </div>
 
-            <!-- Reading History -->
             <div id="history-card" class="card history-card">
-                <h3>📖 Histórico de Leitura & Streak</h3>
+                <h3 data-i18n="historyTitle">📖 Reading History & Streak</h3>
                 <div id="streak-display" class="streak-display">
-                    <span id="streak-count">0</span> dias seguidos 🔥
+                    <span id="streak-count">0</span> <span data-i18n="streakDays">consecutive days 🔥</span>
                 </div>
-                <div id="history-list" class="history-list">
-                    <!-- Populated by JS -->
-                </div>
-                <button id="clear-history-btn" class="btn btn-secondary btn-small">Limpar Histórico</button>
+                <div id="history-list" class="history-list"></div>
+                <button id="clear-history-btn" class="btn btn-secondary btn-small" data-i18n="clearHistory">Clear History</button>
             </div>
         </main>
 
-        <!-- Ad Container (visible when NOT reading) -->
         <div id="ad-container" class="ad-container">
             <div class="ad-placeholder">
-                <p><strong>Publicidade</strong></p>
-                <p style="font-size: 0.75rem; opacity: 0.7;">Suporte o projeto • Anúncios Google</p>
-                <!-- 
-                    REPLACE THIS WITH YOUR GOOGLE ADSENSE CODE
-                    Example:
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-YOUR_PUB_ID"
-                         data-ad-slot="YOUR_SLOT_ID"
-                         data-ad-format="auto"
-                         data-full-width-responsive="true"></ins>
-                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-                -->
-                <div style="background: #334155; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem;">
-                    Espaço para Google AdSense (Auto Ads ou Display)
+                <p><strong data-i18n="advertising">Advertising</strong></p>
+                <p style="font-size: 0.75rem; opacity: 0.7;" data-i18n="adSupport">Support the project • Google Ads</p>
+                <div style="background: #334155; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem;" data-i18n="adPlaceholder">
+                    Space for Google AdSense (Auto Ads or Display)
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- RSVP Reading Modal -->
     <div id="rsvp-modal" class="rsvp-modal hidden">
         <div class="rsvp-content">
-            <!-- Top Bar -->
             <div class="rsvp-topbar">
                 <div class="rsvp-reference">
                     <span id="rsvp-book-chapter"></span>
@@ -170,27 +144,24 @@
                     <span id="rsvp-progress"></span>
                     <span id="rsvp-wpm"></span>
                 </div>
-                <button id="close-rsvp" class="btn btn-close">✕ Sair</button>
+                <button id="close-rsvp" class="btn btn-close" data-i18n="exit">✕ Exit</button>
             </div>
 
-            <!-- Word Display -->
             <div class="rsvp-display">
                 <div id="rsvp-word" class="rsvp-word"></div>
             </div>
 
-            <!-- Bottom Controls -->
             <div class="rsvp-controls">
-                <button id="pause-btn" class="btn btn-control">⏸ Pausar</button>
+                <button id="pause-btn" class="btn btn-control" data-i18n="pause">⏸ Pause</button>
                 
                 <div class="control-group">
-                    <button id="prev-verse-btn" class="btn btn-small">← Verso Anterior</button>
-                    <button id="next-verse-btn" class="btn btn-small">Próximo Verso →</button>
+                    <button id="prev-verse-btn" class="btn btn-small" data-i18n="prevVerse">← Previous Verse</button>
+                    <button id="next-verse-btn" class="btn btn-small" data-i18n="nextVerse">Next Verse →</button>
                 </div>
 
-                <!-- Chapter Navigation -->
                 <div class="control-group chapter-nav">
-                    <button id="prev-chapter-btn" class="btn btn-small">← Cap. Anterior</button>
-                    <button id="next-chapter-btn" class="btn btn-small">Próximo Cap. →</button>
+                    <button id="prev-chapter-btn" class="btn btn-small" data-i18n="prevChapter">← Prev. Chapter</button>
+                    <button id="next-chapter-btn" class="btn btn-small" data-i18n="nextChapter">Next Chapter →</button>
                 </div>
 
                 <div class="control-group">
@@ -205,11 +176,12 @@
                     <button id="chunk-up" class="btn btn-small">+ Chunk</button>
                 </div>
 
-                <button id="restart-btn" class="btn btn-control">↻ Reiniciar</button>
+                <button id="restart-btn" class="btn btn-control" data-i18n="restart">↻ Restart</button>
             </div>
         </div>
     </div>
 
+    <script src="js/i18n.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>
