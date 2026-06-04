@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bíblia RSVP - Leitura Rápida da Palavra com RSVP. Versões KJV e Almeida.">
+    <meta name="theme-color" content="#0f172a">
+    <title>Bíblia RSVP • Leitura Rápida da Palavra</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">✝</span>
+                    <div>
+                        <h1>Bíblia RSVP</h1>
+                        <p class="tagline">Leitura Rápida • Foco na Palavra</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="install-btn" class="btn btn-secondary hidden">Instalar App</button>
+                    <button id="sample-btn" class="btn btn-secondary">Carregar Amostra (João 3:16)</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Controls -->
+        <main class="main-content">
+            <div class="card selector-card">
+                <h2>Selecione o Capítulo</h2>
+                
+                <div class="form-grid">
+                    <!-- Version -->
+                    <div class="form-group">
+                        <label for="version">Versão da Bíblia</label>
+                        <select id="version" class="form-control">
+                            <option value="kjv">King James Version (KJV) - Inglês</option>
+                            <option value="almeida">João Ferreira de Almeida - Português</option>
+                        </select>
+                    </div>
+
+                    <!-- Book -->
+                    <div class="form-group">
+                        <label for="book">Livro</label>
+                        <select id="book" class="form-control">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+
+                    <!-- Chapter -->
+                    <div class="form-group">
+                        <label for="chapter">Capítulo</label>
+                        <select id="chapter" class="form-control">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <button id="load-btn" class="btn btn-primary btn-large">Carregar Capítulo</button>
+            </div>
+
+            <!-- Chapter Preview -->
+            <div id="preview-card" class="card preview-card hidden">
+                <div class="preview-header">
+                    <h3 id="preview-reference"></h3>
+                    <div class="preview-stats">
+                        <span id="preview-stats"></span>
+                    </div>
+                </div>
+                <div id="preview-text" class="preview-text"></div>
+            </div>
+
+            <!-- RSVP Settings -->
+            <div id="settings-card" class="card settings-card hidden">
+                <h3>Configurações de Leitura Rápida (RSVP)</h3>
+                
+                <div class="settings-grid">
+                    <!-- WPM -->
+                    <div class="setting">
+                        <div class="setting-header">
+                            <label>Velocidade (WPM)</label>
+                            <span id="wpm-value" class="setting-value">350</span>
+                        </div>
+                        <input type="range" id="wpm-slider" min="100" max="1200" step="10" value="350">
+                        <div class="setting-hint">Palavras por minuto</div>
+                    </div>
+
+                    <!-- Chunk Size -->
+                    <div class="setting">
+                        <label>Tamanho do Chunk</label>
+                        <div class="chunk-buttons">
+                            <button class="chunk-btn active" data-chunk="1">1 palavra</button>
+                            <button class="chunk-btn" data-chunk="2">2 palavras</button>
+                            <button class="chunk-btn" data-chunk="3">3 palavras</button>
+                        </div>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div class="setting">
+                        <div class="setting-header">
+                            <label>Tamanho da Fonte</label>
+                            <span id="font-value" class="setting-value">3.5rem</span>
+                        </div>
+                        <input type="range" id="font-slider" min="2" max="6" step="0.2" value="3.5">
+                    </div>
+                </div>
+
+                <div class="setting advanced">
+                    <label>
+                        <input type="checkbox" id="punctuation-pause" checked>
+                        Pausar mais em pontuação (. , ; ! ?)
+                    </label>
+                </div>
+
+                <button id="start-btn" class="btn btn-primary btn-large btn-start">
+                    ▶ Iniciar Leitura Rápida
+                </button>
+            </div>
+
+            <!-- Reading History -->
+            <div id="history-card" class="card history-card">
+                <h3>📖 Histórico de Leitura & Streak</h3>
+                <div id="streak-display" class="streak-display">
+                    <span id="streak-count">0</span> dias seguidos 🔥
+                </div>
+                <div id="history-list" class="history-list">
+                    <!-- Populated by JS -->
+                </div>
+                <button id="clear-history-btn" class="btn btn-secondary btn-small">Limpar Histórico</button>
+            </div>
+        </main>
+
+        <!-- Ad Container (visible when NOT reading) -->
+        <div id="ad-container" class="ad-container">
+            <div class="ad-placeholder">
+                <p><strong>Publicidade</strong></p>
+                <p style="font-size: 0.75rem; opacity: 0.7;">Suporte o projeto • Anúncios Google</p>
+                <!-- 
+                    REPLACE THIS WITH YOUR GOOGLE ADSENSE CODE
+                    Example:
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-YOUR_PUB_ID"
+                         data-ad-slot="YOUR_SLOT_ID"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                -->
+                <div style="background: #334155; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem;">
+                    Espaço para Google AdSense (Auto Ads ou Display)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RSVP Reading Modal -->
+    <div id="rsvp-modal" class="rsvp-modal hidden">
+        <div class="rsvp-content">
+            <!-- Top Bar -->
+            <div class="rsvp-topbar">
+                <div class="rsvp-reference">
+                    <span id="rsvp-book-chapter"></span>
+                    <span id="rsvp-verse" class="current-verse"></span>
+                </div>
+                <div class="rsvp-stats">
+                    <span id="rsvp-progress"></span>
+                    <span id="rsvp-wpm"></span>
+                </div>
+                <button id="close-rsvp" class="btn btn-close">✕ Sair</button>
+            </div>
+
+            <!-- Word Display -->
+            <div class="rsvp-display">
+                <div id="rsvp-word" class="rsvp-word"></div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="rsvp-controls">
+                <button id="pause-btn" class="btn btn-control">⏸ Pausar</button>
+                
+                <div class="control-group">
+                    <button id="prev-verse-btn" class="btn btn-small">← Verso Anterior</button>
+                    <button id="next-verse-btn" class="btn btn-small">Próximo Verso →</button>
+                </div>
+
+                <!-- Chapter Navigation -->
+                <div class="control-group chapter-nav">
+                    <button id="prev-chapter-btn" class="btn btn-small">← Cap. Anterior</button>
+                    <button id="next-chapter-btn" class="btn btn-small">Próximo Cap. →</button>
+                </div>
+
+                <div class="control-group">
+                    <button id="speed-down" class="btn btn-small">− WPM</button>
+                    <span id="current-wpm" class="control-value"></span>
+                    <button id="speed-up" class="btn btn-small">+ WPM</button>
+                </div>
+
+                <div class="control-group">
+                    <button id="chunk-down" class="btn btn-small">− Chunk</button>
+                    <span id="current-chunk" class="control-value"></span>
+                    <button id="chunk-up" class="btn btn-small">+ Chunk</button>
+                </div>
+
+                <button id="restart-btn" class="btn btn-control">↻ Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
