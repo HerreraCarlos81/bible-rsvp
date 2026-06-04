@@ -1,5 +1,6 @@
 // ==================== CONFIG ====================
 const BIBLE_API = 'https://bible-api.com/';
+const DEFAULT_WPM = 250;
 
 // Books data (66 books) - same as before for brevity, abbreviated here but full in real file
 const books = [
@@ -76,7 +77,7 @@ let currentWords = [];
 let currentIndex = 0;
 let isPlaying = false;
 let timer = null;
-let wpm = 350;
+let wpm = DEFAULT_WPM;
 let chunkSize = 1;
 let punctuationPause = true;
 let currentReference = '';
@@ -203,7 +204,7 @@ function renderHistory() {
             </div>
             <div style="text-align:right; font-size:0.8rem;">
                 ${entry.wordsRead} palavras<br>
-                <span style="color:#22c55e;">${Math.round(entry.wordsRead / 350)} min</span>
+                <span style="color:#22c55e;">${Math.round(entry.wordsRead / DEFAULT_WPM)} min</span>
             </div>
         `;
         container.appendChild(div);
@@ -219,6 +220,29 @@ function clearHistory() {
 }
 
 // ==================== VERSE PARSING & NAVIGATION ====================
+function buildVersesFromStructured(apiVerses) {
+    verses = [];
+    currentWords = [];
+    let wordIndex = 0;
+
+    for (const v of apiVerses) {
+        const verseText = (v.text || '').replace(/\s+/g, ' ').trim();
+        const verseWords = verseText.split(/\s+/).filter(Boolean);
+        const startIdx = wordIndex;
+        const endIdx = wordIndex + verseWords.length;
+
+        verses.push({
+            num: v.verse,
+            text: verseText,
+            startWordIndex: startIdx,
+            endWordIndex: endIdx
+        });
+
+        currentWords.push(...verseWords);
+        wordIndex = endIdx;
+    }
+}
+
 function parseVerses(rawText) {
     verses = [];
     const verseRegex = /(\d+)\s+([^\d]+)/g;
@@ -407,18 +431,21 @@ async function loadChapterData(bookSlug, chapterNum) {
         const data = await res.json();
 
         currentReference = data.reference;
-        const rawText = data.text || '';
 
-        // Clean text for RSVP
-        const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
-        currentWords = cleanText.split(/\s+/).filter(w => w.length > 0);
+        if (data.verses && data.verses.length > 0) {
+            buildVersesFromStructured(data.verses);
+            previewText.innerHTML = data.verses
+                .map(v => `<sup>${v.verse}</sup> ${(v.text || '').replace(/\n/g, ' ').trim()}`)
+                .join(' ');
+        } else {
+            const rawText = data.text || '';
+            const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
+            currentWords = cleanText.split(/\s+/).filter(w => w.length > 0);
+            parseVerses(rawText);
+            previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
+        }
 
-        // Parse verses for navigation
-        parseVerses(rawText);
-
-        // Update main UI
         previewReference.textContent = currentReference;
-        previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
         previewStats.textContent = `${currentWords.length} palavras • ${verses.length} versículos`;
 
         previewCard.classList.remove('hidden');

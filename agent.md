@@ -131,7 +131,7 @@ flowchart LR
 
 ```js
 // js/script.js state (lines 79-81)
-wpm = 350;
+wpm = 250 (`DEFAULT_WPM` constant);
 chunkSize = 1;
 punctuationPause = true;
 ```
@@ -234,6 +234,7 @@ All times are **UTC**. Newest entries first. Every agent session that changes co
 
 | Date | Time (UTC) | Author | Files | Summary |
 |------|------------|--------|-------|---------|
+| 2026-06-04 | 19:55:07 | Agent (Grok) | `js/script.js`, `index.html` | Default WPM 250 (`DEFAULT_WPM`). Fixed verse/word stats: use API `data.verses` via `buildVersesFromStructured()` (API `text` has no verse numbers; regex fallback was counting 1 verse). |
 | 2026-06-04 | 19:42:09 | Agent (Grok) | `README.md` | Rewrote for repo visitors and supporters: what the app is, features, how to try, support section; moved dev/deploy/API details to brief pointer to `agent.md`. |
 | 2026-06-04 | 19:35:00 | Agent (Grok) | `agent.md` | Clarified WPM/chunk controls: in-modal buttons only; noted `instruction.md` vs `handleKeyboard` mismatch on Arrow Up/Down. |
 | 2026-06-04 | 19:32:57 | Agent (Grok) | `agent.md` | **Created** this guide after full project study: architecture map, verified `script.js` line index, localStorage keys, agent rules, and initial change log. No application code modified. |
@@ -256,4 +257,4 @@ Copy and prepend a new row for each change:
 
 ---
 
-*Last updated: 2026-06-04 19:42:09 UTC*
+*Last updated: 2026-06-04 19:55:07 UTC*
