@@ -40,13 +40,3 @@
 I can provide a Python script (boto3) to download open Bible JSONs and upload structured files to S3 in one command.
 
 For now, the API version lets you launch immediately and test with real users.
-
-## Next Steps (Python Backend)
-
-If you want user accounts, saved plans, or analytics:
-- Add AWS Lambda (Python) + API Gateway + DynamoDB.
-- I can generate the full serverless backend code.
-
-Thank you for building this meaningful project! 
-
-— Grok
