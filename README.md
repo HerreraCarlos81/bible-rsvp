@@ -1,42 +1,77 @@
-# Bíblia RSVP - Final Production-Ready Files
+# Bíblia RSVP
 
-## Deploy Instructions (AWS S3 + CloudFront)
+**Leitura Rápida • Foco na Palavra**
 
-1. Upload all files in this folder to your S3 bucket.
-2. Create CloudFront distribution pointing to the S3 origin (with OAC).
-3. (Optional) Add your Google AdSense code in the ad-container section of index.html.
-4. For production: Replace the bible-api.com calls with static JSON files hosted on the same S3/CloudFront for unlimited scalability.
+Bíblia RSVP is a free web app that helps you read the Bible with focus and flow. Instead of scanning lines on a page, you read one word—or a small group of words—at a time in the center of the screen, at a speed you choose. That method is called **RSVP** (Rapid Serial Visual Presentation), and many people find it easier to stay attentive through whole chapters.
 
-## Key Features Added
+The goal is simple: make it easier to spend time in Scripture, whether you want a quick chapter, a daily habit, or a deeper read-through of a book.
 
-- **PWA Support**: Installable as app (manifest + service worker). Works offline for the shell.
-- **Verse Navigation**: "Previous Verse" / "Next Verse" buttons + automatic verse display in RSVP mode. Current verse is highlighted.
-- **Reading History & Streaks**: Automatically saves every chapter you load. Shows last 5 reads + calculates consecutive day streak (🔥).
-- **Ad Container**: Bottom advertising section visible only when NOT in active RSVP reading mode. Ready for Google AdSense.
-- **Enhanced RSVP**: Better verse tracking, smoother controls, keyboard arrows for verse navigation.
+---
 
-## Scalability of Bible API (Important Decision)
+## What you can do
 
-**Current bible-api.com limits** (from official site):
-- **15 requests every 30 seconds** per IP address.
-- Explicit warning: "Do not use this API to download an entire bible".
-- It's a small personal/free service (Ruby/Sinatra on limited infrastructure).
+- **Choose any book and chapter** — all 66 books of the Bible
+- **Read in two translations** — King James Version (English) and João Ferreira de Almeida (Portuguese)
+- **Control your pace** — adjust words per minute, chunk size (1–3 words on the main screen), and font size
+- **Stay oriented** — see which verse you are on while reading; jump to previous or next verse
+- **Move through chapters** — go to the previous or next chapter without leaving reading mode
+- **Build a habit** — reading history and a daily streak (🔥) encourage consistency
+- **Use it like an app** — install on your phone or desktop (Progressive Web App); the interface works on mobile and desktop
 
-**For your use case**:
-- Fine for personal / low-traffic MVP (one chapter load per user session is ~1 request).
-- **Risky for production with ads/revenue**: If you get 100+ concurrent users or people rapidly browsing chapters, many will hit rate limits. The service can slow down or block requests.
-- No SLA, no guaranteed uptime, no easy way to scale.
+When you are actively reading, the screen stays clean—no ads in the way. Support messages and advertising space appear only on the main screen, so reading stays distraction-free.
 
-**Recommendation**: 
-**Yes, migrate to static files on S3 + CloudFront** for the final production version.
+---
 
-**Why**:
-- Bible text is tiny (~4-8 MB total for full KJV or similar).
-- Infinite scalability, global edge caching, near-zero cost.
-- Works perfectly offline after first load.
-- No rate limits ever.
-- You control the data (use public domain KJV + licensed PT version if needed).
+## How RSVP reading works
 
-I can provide a Python script (boto3) to download open Bible JSONs and upload structured files to S3 in one command.
+Traditional reading moves your eyes across lines. RSVP keeps your focus in one place: each word (or short chunk) appears briefly, then the next. You set how fast words appear (WPM—words per minute). Optional pauses after punctuation give you a natural breath at the end of sentences.
 
-For now, the API version lets you launch immediately and test with real users.
+You can pause anytime, restart the chapter, or exit back to the chapter selector. Keyboard shortcuts work in reading mode (for example: Space to pause, arrow keys for verses, Page Up/Down for chapters).
+
+---
+
+## Try it
+
+Open the app in a modern browser (Chrome, Firefox, Safari, or Edge). Pick a version, book, and chapter, then tap **Carregar Capítulo** and **Iniciar Leitura Rápida**.
+
+You can also use **Carregar Amostra (João 3:16)** for a quick demo without loading a full chapter.
+
+On mobile, use **Instalar App** when offered to add Bíblia RSVP to your home screen.
+
+---
+
+## Who this is for
+
+- Anyone who wants to **read more of the Bible** with less visual clutter  
+- Readers who like **speed-reading techniques** applied to Scripture  
+- Portuguese and English readers using **Almeida** or **KJV**  
+- People building a **daily reading rhythm** with history and streak tracking  
+
+---
+
+## Support the project
+
+Bíblia RSVP is an open project shared in the hope that it helps people engage with God’s Word. If it helps you, here are meaningful ways to support it:
+
+- **Use it** — read regularly and share what works for you  
+- **Star this repository** — it helps others discover the project  
+- **Share the link** — with friends, your church, or study groups  
+- **Give feedback** — ideas for translations, features, or accessibility are welcome via issues or discussions on GitHub  
+
+The app is designed to remain free to use. Optional advertising on the main screen (not during reading) may help cover hosting in the future; that keeps the reading experience itself focused on Scripture.
+
+---
+
+## About
+
+Built with care for deeper engagement with the Word.
+
+**Maintainer:** Carlos Herrera ([@CodedNeurons](https://github.com/HerreraCarlos81))
+
+**License:** See [LICENSE](LICENSE) in this repository.
+
+---
+
+## For developers
+
+Technical architecture, deployment notes, and a change log for contributors live in **[agent.md](agent.md)**. Extended feature documentation is in **[instruction.md](instruction.md)** if present in your checkout.
