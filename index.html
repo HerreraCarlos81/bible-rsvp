@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Bible RSVP — Rapid Serial Visual Presentation reading. KJV, WEB, ASV, Almeida and more.">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#ecfdf5">
     <title>Bible RSVP • Focused Scripture Reading</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/styles.css">
@@ -23,7 +23,6 @@
                 <div class="header-right">
                     <div class="header-actions">
                         <button id="install-btn" class="btn btn-secondary hidden" data-i18n="installApp">Install App</button>
-                        <button id="sample-btn" class="btn btn-secondary" data-i18n="loadSample">Load Sample (John 3:16)</button>
                     </div>
                     <div class="lang-switcher" role="group" aria-label="Interface language">
                         <button type="button" class="lang-btn active" data-lang="en" title="English" aria-label="English">
@@ -69,6 +68,7 @@
                     </div>
                 </div>
                 <div id="preview-text" class="preview-text"></div>
+                <button id="start-btn" class="btn btn-primary btn-large btn-start preview-start-btn" data-i18n="startReading">▶ Start Speed Reading</button>
             </div>
 
             <div id="settings-card" class="card settings-card hidden">
@@ -78,9 +78,9 @@
                     <div class="setting">
                         <div class="setting-header">
                             <label data-i18n="speedWpm">Speed (WPM)</label>
-                            <span id="wpm-value" class="setting-value">250</span>
+                            <span id="wpm-value" class="setting-value">300</span>
                         </div>
-                        <input type="range" id="wpm-slider" min="100" max="1200" step="10" value="250">
+                        <input type="range" id="wpm-slider" min="100" max="1200" step="10" value="300">
                         <div class="setting-hint" data-i18n="wordsPerMinute">Words per minute</div>
                     </div>
 
@@ -108,8 +108,6 @@
                         <span data-i18n="punctuationPause">Pause longer at punctuation (. , ; ! ?)</span>
                     </label>
                 </div>
-
-                <button id="start-btn" class="btn btn-primary btn-large btn-start" data-i18n="startReading">▶ Start Speed Reading</button>
             </div>
 
             <div id="history-card" class="card history-card">
@@ -126,7 +124,7 @@
             <div class="ad-placeholder">
                 <p><strong data-i18n="advertising">Advertising</strong></p>
                 <p style="font-size: 0.75rem; opacity: 0.7;" data-i18n="adSupport">Support the project • Google Ads</p>
-                <div style="background: #334155; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem;" data-i18n="adPlaceholder">
+                <div class="ad-slot-inner" data-i18n="adPlaceholder">
                     Space for Google AdSense (Auto Ads or Display)
                 </div>
             </div>

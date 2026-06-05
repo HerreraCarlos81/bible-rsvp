@@ -11,7 +11,7 @@ The goal is simple: make it easier to spend time in Scripture, whether you want 
 ## What you can do
 
 - **Choose any book and chapter** — all 66 books of the Bible
-- **Read in two translations** — King James Version (English) and João Ferreira de Almeida (Portuguese)
+- **Read in multiple public-domain translations** — KJV, WEB, ASV, BBE, Darby (English) and Almeida (Portuguese)
 - **Control your pace** — adjust words per minute, chunk size (1–3 words on the main screen), and font size
 - **Stay oriented** — see which verse you are on while reading; jump to previous or next verse
 - **Move through chapters** — go to the previous or next chapter without leaving reading mode
@@ -32,11 +32,9 @@ You can pause anytime, restart the chapter, or exit back to the chapter selector
 
 ## Try it
 
-Open the app in a modern browser (Chrome, Firefox, Safari, or Edge). Pick a version, book, and chapter, then tap **Carregar Capítulo** and **Iniciar Leitura Rápida**.
+Open the app in a modern browser (Chrome, Firefox, Safari, or Edge). Pick a version, book, and chapter, then tap **Load Chapter**. The page scrolls to the preview and **Start Speed Reading** appears right below the text.
 
-You can also use **Carregar Amostra (João 3:16)** for a quick demo without loading a full chapter.
-
-On mobile, use **Instalar App** when offered to add Bíblia RSVP to your home screen.
+On mobile, use **Install App** when offered to add Bible RSVP to your home screen.
 
 ---
 

@@ -1,6 +1,6 @@
 // ==================== CONFIG ====================
 const BIBLE_API = 'https://bible-api.com/';
-const DEFAULT_WPM = 250;
+const DEFAULT_WPM = 300;
 
 // Public-domain translations available on bible-api.com
 const bibleVersions = [
@@ -19,6 +19,17 @@ function getBibleLang() {
 
 function getBookDisplayName(book) {
     return getBibleLang() === 'pt' ? book.ptName : book.name;
+}
+
+/** API book name for bible-api.com (PT names required for Almeida on some books). */
+function getApiBookName(book) {
+    return getBibleLang() === 'pt' ? book.ptName : book.name;
+}
+
+function buildChapterApiUrl(book, chapterNum, version) {
+    const query = `${getApiBookName(book)} ${chapterNum}`;
+    const path = encodeURIComponent(query).replace(/%20/g, '+');
+    return `${BIBLE_API}${path}?translation=${encodeURIComponent(version)}`;
 }
 
 function formatPreviewStats(wordCount, verseCount) {
@@ -51,6 +62,12 @@ function refreshPauseButtonLabel() {
     if (!rsvpModal.classList.contains('hidden')) {
         pauseBtn.textContent = isPlaying ? I18n.t('pause') : I18n.t('resume');
     }
+}
+
+function scrollToPreview() {
+    requestAnimationFrame(() => {
+        previewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 }
 
 // Books data (66 books) - same as before for brevity, abbreviated here but full in real file
@@ -413,9 +430,6 @@ function init() {
         });
     });
     
-    // Sample button
-    document.getElementById('sample-btn').addEventListener('click', loadSample);
-    
     // History
     document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
     
@@ -482,14 +496,18 @@ async function loadChapterData(bookSlug, chapterNum) {
     const book = books.find(b => b.slug === bookSlug);
     if (!book) return false;
 
-    const apiBook = book.name.replace(/\s+/g, '+');
-    const url = `${BIBLE_API}${apiBook}+${chapterNum}?translation=${version}`;
+    const url = buildChapterApiUrl(book, chapterNum, version);
 
     try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error(I18n.t('loadChapterError'));
+        const data = await res.json().catch(() => ({}));
 
-        const data = await res.json();
+        if (!res.ok || data.error) {
+            throw new Error(data.error || I18n.t('loadChapterError'));
+        }
+        if (!data.verses?.length && !data.text) {
+            throw new Error(I18n.t('loadChapterError'));
+        }
 
         currentReference = data.reference;
 
@@ -511,6 +529,7 @@ async function loadChapterData(bookSlug, chapterNum) {
 
         previewCard.classList.remove('hidden');
         settingsCard.classList.remove('hidden');
+        scrollToPreview();
 
         // Update selectors to reflect current chapter
         bookSelect.value = bookSlug;
@@ -545,45 +564,6 @@ async function loadChapter() {
 
     loadBtn.disabled = false;
     loadBtn.textContent = I18n.t('loadChapter');
-}
-
-// Sample: John 3:16 from selected Bible version
-async function loadSample() {
-    const version = versionSelect.value;
-    try {
-        const res = await fetch(`${BIBLE_API}john+3:16?translation=${version}`);
-        if (!res.ok) throw new Error(I18n.t('loadChapterError'));
-        const data = await res.json();
-
-        currentReference = I18n.t('sampleReference');
-        if (data.verses && data.verses.length > 0) {
-            buildVersesFromStructured(data.verses);
-            previewText.innerHTML = data.verses
-                .map(v => `<sup>${v.verse}</sup> ${(v.text || '').replace(/\n/g, ' ').trim()}`)
-                .join(' ');
-        } else {
-            const rawText = data.text || '';
-            const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
-            currentWords = cleanText.split(/\s+/).filter(Boolean);
-            parseVerses(rawText);
-            previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
-        }
-
-        previewReference.textContent = currentReference;
-        previewStats.textContent = formatPreviewStats(currentWords.length, verses.length);
-
-        previewCard.classList.remove('hidden');
-        settingsCard.classList.remove('hidden');
-
-        saveHistory({
-            reference: currentReference,
-            date: new Date().toISOString(),
-            wordsRead: currentWords.length
-        });
-    } catch (err) {
-        alert(I18n.t('loadChapterError'));
-        console.error(err);
-    }
 }
 
 // Start RSVP
@@ -655,7 +635,7 @@ function finishReading() {
     
     rsvpWord.innerHTML = `
         <div style="text-align:center">
-            <div style="font-size:1.8rem; margin-bottom:1rem; color:#d4af37">${I18n.t('chapterComplete')}</div>
+            <div style="font-size:1.8rem; margin-bottom:1rem; color:var(--accent)">${I18n.t('chapterComplete')}</div>
             <div>${I18n.t('youRead')} <strong>${currentWords.length}</strong> ${I18n.t('words')}</div>
             <div style="margin-top:1.5rem; font-size:0.95rem; opacity:0.8">
                 ${I18n.t('approxMinutes', { minutes: (currentWords.length / wpm).toFixed(1) })}

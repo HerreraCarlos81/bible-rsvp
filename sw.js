@@ -1,5 +1,5 @@
 // Simple Service Worker for Bíblia RSVP PWA
-const CACHE_NAME = 'biblia-rsvp-v2';
+const CACHE_NAME = 'biblia-rsvp-v3';
 const urlsToCache = [
   './',
   './index.html',

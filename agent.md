@@ -104,7 +104,7 @@ flowchart LR
 | 143–220 | History & streak: `getHistory`, `saveHistory`, `updateStreak`, `renderHistory`, `clearHistory` |
 | 222–300 | Verse parsing & RSVP UI: `parseVerses`, `getCurrentVerse`, `jumpToVerse`, `updateRSVPUI` |
 | 302–394 | `init()`, book/chapter dropdowns |
-| 395–488 | Loading: `loadChapterData`, `loadChapter`, `loadSample` |
+| 395–570 | Loading: `loadChapterData`, `loadChapter`, `scrollToPreview` |
 | 489–584 | RSVP engine: `startRSVP`, `showNextWord`, `togglePause`, `finishReading`, `closeRSVP` |
 | 585–662 | Chapter nav: `goToNextChapter`, `goToPreviousChapter` |
 | 663–772 | Controls & keyboard: `setupVerseNavigation`, `setupRSVPControls`, `handleKeyboard` |
@@ -131,7 +131,7 @@ flowchart LR
 
 ```js
 // js/script.js state (lines 79-81)
-wpm = 250 (`DEFAULT_WPM` constant);
+wpm = 300 (`DEFAULT_WPM` constant);
 chunkSize = 1;
 punctuationPause = true;
 ```
@@ -171,7 +171,7 @@ punctuationPause = true;
 
 ## Important DOM IDs
 
-**Main:** `#version`, `#book`, `#chapter`, `#load-btn`, `#preview-card`, `#settings-card`, `#start-btn`, `#history-card`, `#ad-container`
+**Main:** `#version`, `#book`, `#chapter`, `#load-btn`, `#preview-card` (contains `#start-btn`), `#settings-card`, `#history-card`, `#ad-container`
 
 **RSVP modal:** `#rsvp-modal`, `#rsvp-word`, `#pause-btn`, `#close-rsvp`, `#prev-verse-btn`, `#next-verse-btn`, `#prev-chapter-btn`, `#next-chapter-btn`
 
@@ -181,7 +181,8 @@ punctuationPause = true;
 
 - **Limit:** ~15 requests per 30 seconds per IP (per README / bible-api.com)
 - **Not for bulk download** — production should migrate to static JSON on S3/CloudFront
-- **URL pattern:** `BIBLE_API` + book slug + chapter (see `loadChapterData`)
+- **URL pattern:** `buildChapterApiUrl()` — use `ptName` for Portuguese Bibles (Almeida); encode URI
+- **Verses:** Prefer `data.verses[]` from API (`buildVersesFromStructured`); plain `text` has no verse numbers
 
 ---
 
@@ -212,15 +213,15 @@ punctuationPause = true;
 **Live layout:** root-level static site — `index.html`, `manifest.json`, `sw.js`, `css/styles.css`, `js/script.js`, `js/i18n.js`
 
 ```bash
-python3 deploy.py --dry-run   # preview
-python3 deploy.py -y          # upload
+./deploy.sh --dry-run   # preview
+./deploy.sh -y          # upload
 ```
 
 Optional: `BIBLE_RSVP_CLOUDFRONT_ID=<id>` for cache invalidation after deploy.
 
 ## Deployment Checklist
 
-1. Run `deploy.py` (or manual upload) to S3
+1. Run `deploy.sh` (or manual upload) to S3
 2. CloudFront + OAC, HTTPS (if used — set invalidation env var)
 3. Replace AdSense placeholder in `index.html`
 4. Plan migration from `bible-api.com` to static JSON on same origin
@@ -246,7 +247,8 @@ All times are **UTC**. Newest entries first. Every agent session that changes co
 
 | Date | Time (UTC) | Author | Files | Summary |
 |------|------------|--------|-------|---------|
-| 2026-06-04 | 21:19:08 | Agent (Grok) | `deploy.py`, `agent.md` | S3 deploy script for `bible-reading.online` (sync app assets, dry-run, optional CloudFront invalidation). |
+| 2026-06-05 | 01:51:17 | Agent (Grok) | `index.html`, `js/script.js`, `js/i18n.js`, `README.md`, `instruction.md`, `agent.md`, `.gitignore`, `deploy.sh` | Removed sample button; WPM 300; scroll-to-preview; light theme + Almeida fix; `deploy.sh` replaces `deploy.py`; docs updated. |
+| 2026-06-04 | 21:19:08 | Agent (Grok) | `deploy.sh`, `agent.md` | S3 deploy shell script for `bible-reading.online` (replaces deploy.py). |
 | 2026-06-04 | 20:48:58 | Agent (Grok) | `js/i18n.js`, `js/script.js`, `index.html`, `css/styles.css`, `sw.js` | UI language switch (EN/PT flags, system locale detect, default EN). Book names match Bible language only. Added PD translations: WEB, ASV, BBE, Darby (+ KJV, Almeida). |
 | 2026-06-04 | 19:55:07 | Agent (Grok) | `js/script.js`, `index.html` | Default WPM 250 (`DEFAULT_WPM`). Fixed verse/word stats: use API `data.verses` via `buildVersesFromStructured()` (API `text` has no verse numbers; regex fallback was counting 1 verse). |
 | 2026-06-04 | 19:42:09 | Agent (Grok) | `README.md` | Rewrote for repo visitors and supporters: what the app is, features, how to try, support section; moved dev/deploy/API details to brief pointer to `agent.md`. |
@@ -271,4 +273,4 @@ Copy and prepend a new row for each change:
 
 ---
 
-*Last updated: 2026-06-04 21:19:08 UTC*
+*Last updated: 2026-06-05 01:51:17 UTC*

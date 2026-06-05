@@ -1,6 +1,3 @@
-# Local / private docs (not for the public repo)
-instruction.md
-
 # Environment and secrets
 .env
 .env.*

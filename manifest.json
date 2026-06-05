@@ -4,8 +4,8 @@
   "description": "Leia a Bíblia com RSVP (Rapid Serial Visual Presentation). Versões KJV e Almeida. Aumente sua velocidade de leitura da Palavra.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#ecfdf5",
+  "theme_color": "#15803d",
   "orientation": "any",
   "icons": [
     {

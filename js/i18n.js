@@ -8,7 +8,6 @@ const translations = {
         appName: 'Bible RSVP',
         tagline: 'Speed Reading • Focus on the Word',
         installApp: 'Install App',
-        loadSample: 'Load Sample (John 3:16)',
         selectChapter: 'Select Chapter',
         bibleVersion: 'Bible Version',
         book: 'Book',
@@ -64,7 +63,6 @@ const translations = {
         readAnotherConfirm: 'Well done! Read another chapter?',
         lastChapterBible: 'You reached the last chapter of the Bible!',
         firstChapterBible: 'You are on the first chapter of the Bible.',
-        sampleReference: 'John 3:16 (Sample)',
         switchLangEn: 'English',
         switchLangPt: 'Português'
     },
@@ -74,7 +72,6 @@ const translations = {
         appName: 'Bíblia RSVP',
         tagline: 'Leitura Rápida • Foco na Palavra',
         installApp: 'Instalar App',
-        loadSample: 'Carregar Amostra (João 3:16)',
         selectChapter: 'Selecione o Capítulo',
         bibleVersion: 'Versão da Bíblia',
         book: 'Livro',
@@ -130,7 +127,6 @@ const translations = {
         readAnotherConfirm: 'Parabéns! Deseja ler outro capítulo?',
         lastChapterBible: 'Você chegou ao último capítulo da Bíblia!',
         firstChapterBible: 'Você está no primeiro capítulo da Bíblia.',
-        sampleReference: 'João 3:16 (Amostra)',
         switchLangEn: 'English',
         switchLangPt: 'Português'
     }
