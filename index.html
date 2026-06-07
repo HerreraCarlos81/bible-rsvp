@@ -14,7 +14,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <span class="logo-icon">✝</span>
+                    <span class="logo-icon">📖<span class="logo-speed">⚡</span></span>
                     <div>
                         <h1 data-i18n="appName">Bible RSVP</h1>
                         <p class="tagline" data-i18n="tagline">Speed Reading • Focus on the Word</p>
@@ -177,6 +177,20 @@
                 <button id="restart-btn" class="btn btn-control" data-i18n="restart">↻ Restart</button>
             </div>
         </div>
+    </div>
+
+    <!-- Next chapter toast (bottom right, 5s timer) -->
+    <div id="next-chapter-toast" class="toast hidden">
+      <div class="toast-body">
+        <div class="toast-message" id="toast-message"></div>
+        <div class="toast-progress">
+          <div class="toast-bar" id="toast-bar"></div>
+        </div>
+        <div class="toast-actions">
+          <button id="toast-yes-btn" class="btn btn-primary btn-small"></button>
+          <button id="toast-no-btn" class="btn btn-secondary btn-small"></button>
+        </div>
+      </div>
     </div>
 
     <script src="js/i18n.js"></script>

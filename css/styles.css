@@ -84,8 +84,9 @@ body {
     border: none;
     border-radius: 50%;
     background: transparent;
+    color: #fff; /* white text/emoji for unselected on dark switcher bg */
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
 }
 
 .lang-btn:hover {
@@ -94,6 +95,7 @@ body {
 
 .lang-btn.active {
     background: var(--accent-light);
+    color: #1e2937; /* dark text on light gold active bg for contrast */
     box-shadow: 0 0 0 2px var(--accent);
 }
 
@@ -116,6 +118,17 @@ body {
 .logo-icon {
     font-size: 2.5rem;
     color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.logo-speed {
+    font-size: 0.48em;
+    margin-left: -0.1em;
+    margin-top: -0.35em;
+    color: var(--accent-light);
+    vertical-align: top;
 }
 
 h1 {
@@ -531,4 +544,55 @@ input[type="range"] {
     .app-container {
         padding: 1rem;
     }
+
+    .toast {
+        right: 12px;
+        bottom: 12px;
+        min-width: 240px;
+    }
+}
+
+/* Next chapter toast - bottom right with 5s timer */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1100;
+    min-width: 280px;
+    max-width: 340px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    font-size: 0.95rem;
+}
+
+.toast-body {
+    padding: 0.9rem 1rem 0.75rem;
+}
+
+.toast-message {
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+}
+
+.toast-progress {
+    height: 4px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.35rem 0 0.5rem;
+}
+
+.toast-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 100%;
+}
+
+.toast-actions {
+    display: flex;
+    gap: 0.5rem;
 }

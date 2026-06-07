@@ -234,21 +234,37 @@ function updateStreak() {
         return;
     }
 
+    // Use calendar day keys (YYYY-MM-DD) so consecutive-day detection is reliable
+    // regardless of the exact time-of-day the chapter was finished.
+    // We also dedupe days here: multiple chapters on same day count as one day for streak.
+    const dayKeys = [...new Set(
+        history.map(h => (h.date || '').split('T')[0])
+    )].filter(Boolean).sort((a, b) => b.localeCompare(a)); // newest first
+
+    if (dayKeys.length === 0) {
+        document.getElementById('streak-count').textContent = '0';
+        return;
+    }
+
     let streak = 1;
-    let currentDate = new Date(history[0].date);
-    
-    for (let i = 1; i < history.length; i++) {
-        const prevDate = new Date(history[i].date);
-        const diffDays = Math.floor((currentDate - prevDate) / (1000 * 60 * 60 * 24));
-        
+    let currentDay = dayKeys[0];
+
+    for (let i = 1; i < dayKeys.length; i++) {
+        const prevDay = dayKeys[i];
+        // Safe day diff using Date objects constructed from YYYY-MM-DD (midnight)
+        const diffDays = Math.floor(
+            (new Date(currentDay) - new Date(prevDay)) / (1000 * 60 * 60 * 24)
+        );
+
         if (diffDays === 1) {
             streak++;
-            currentDate = prevDate;
+            currentDay = prevDay;
         } else if (diffDays > 1) {
             break;
         }
+        // diffDays === 0 (same day) or negative: ignore, don't break or increment
     }
-    
+
     document.getElementById('streak-count').textContent = streak;
 }
 
@@ -436,13 +452,15 @@ function init() {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
     
-    // Load saved settings
-    loadSavedSettings();
+    // Load saved settings (restores last loaded bible version, book, chapter, wpm, chunkSize if present)
+    const restoredSelection = loadSavedSettings();
     
-    // Default selection
-    bookSelect.value = 'john';
-    updateChapterOptions();
-    chapterSelect.value = '3';
+    if (!restoredSelection) {
+        // Default selection (first visit)
+        bookSelect.value = 'john';
+        updateChapterOptions();
+        chapterSelect.value = '3';
+    }
     
     // Init features
     initPWA();
@@ -536,13 +554,8 @@ async function loadChapterData(bookSlug, chapterNum) {
         updateChapterOptions();
         chapterSelect.value = chapterNum;
 
-        // Save to history
-        saveHistory({
-            reference: currentReference,
-            date: new Date().toISOString(),
-            wordsRead: currentWords.length
-        });
-
+        // Note: Reading history is now recorded only on RSVP completion (in finishReading),
+        // not on load. saveSettings() still persists the last selection for return visits.
         saveSettings();
         return true;
 
@@ -632,6 +645,16 @@ function togglePause() {
 function finishReading() {
     isPlaying = false;
     clearTimeout(timer);
+
+    // Record in reading history + update streak ONLY when the user actually completes
+    // the full RSVP reading of the chapter (reaches the end).
+    if (currentReference && currentWords.length > 0) {
+        saveHistory({
+            reference: currentReference,
+            date: new Date().toISOString(),
+            wordsRead: currentWords.length
+        });
+    }
     
     rsvpWord.innerHTML = `
         <div style="text-align:center">
@@ -643,14 +666,10 @@ function finishReading() {
         </div>
     `;
 
+    // Show nice toast instead of ugly confirm alert
     setTimeout(() => {
-        if (confirm(I18n.t('readAnotherConfirm'))) {
-            closeRSVP();
-            // Could auto open next chapter logic here
-        } else {
-            closeRSVP();
-        }
-    }, 2500);
+        showNextChapterToast();
+    }, 2200);
 }
 
 function closeRSVP() {
@@ -661,8 +680,72 @@ function closeRSVP() {
     adContainer.style.display = 'block'; // Show ads again
 }
 
+// Toast for "continue to next chapter" after finishing one
+let nextChapterToastTimeout = null;
+
+function showNextChapterToast() {
+    const toast = document.getElementById('next-chapter-toast');
+    const messageEl = document.getElementById('toast-message');
+    const bar = document.getElementById('toast-bar');
+    const yesBtn = document.getElementById('toast-yes-btn');
+    const noBtn = document.getElementById('toast-no-btn');
+
+    if (!toast || !messageEl || !bar || !yesBtn || !noBtn) {
+        // Fallback to old behavior if elements missing
+        if (confirm(I18n.t('readAnotherConfirm'))) {
+            closeRSVP();
+            goToNextChapter(true);
+        } else {
+            closeRSVP();
+        }
+        return;
+    }
+
+    messageEl.textContent = I18n.t('continueToNext');
+    yesBtn.textContent = I18n.t('toastYes');
+    noBtn.textContent = I18n.t('toastNo');
+
+    toast.classList.remove('hidden');
+
+    // Reset and start 5s progress bar
+    bar.style.transition = 'none';
+    bar.style.width = '100%';
+    // force reflow
+    void bar.offsetWidth;
+    bar.style.transition = 'width 5s linear';
+    bar.style.width = '0%';
+
+    const hideToast = () => {
+        toast.classList.add('hidden');
+        if (nextChapterToastTimeout) {
+            clearTimeout(nextChapterToastTimeout);
+            nextChapterToastTimeout = null;
+        }
+    };
+
+    const onYes = () => {
+        hideToast();
+        closeRSVP();
+        goToNextChapter(true); // auto-start the next chapter's RSVP
+    };
+
+    const onNo = () => {
+        hideToast();
+        closeRSVP();
+    };
+
+    yesBtn.onclick = onYes;
+    noBtn.onclick = onNo;
+
+    // Auto dismiss + close after 5 seconds if no action
+    nextChapterToastTimeout = setTimeout(() => {
+        hideToast();
+        closeRSVP();
+    }, 5000);
+}
+
 // ==================== CHAPTER NAVIGATION ====================
-async function goToNextChapter() {
+async function goToNextChapter(autoStartReading = false) {
     if (!currentReference) return;
 
     const currentBook = books.find(b => currentReference.startsWith(b.name) || currentReference.startsWith(b.ptName));
@@ -678,11 +761,9 @@ async function goToNextChapter() {
             const nextBook = books[currentBookIndex + 1];
             nextChapter = 1;
             const success = await loadChapterData(nextBook.slug, nextChapter);
-            if (success && isPlaying) {
-                // Restart reading automatically
+            if (success && (autoStartReading || isPlaying)) {
                 setTimeout(() => {
-                    currentIndex = 0;
-                    showNextWord();
+                    startRSVP();
                 }, 300);
             }
             return;
@@ -693,10 +774,9 @@ async function goToNextChapter() {
     }
 
     const success = await loadChapterData(currentBook.slug, nextChapter);
-    if (success && isPlaying) {
+    if (success && (autoStartReading || isPlaying)) {
         setTimeout(() => {
-            currentIndex = 0;
-            showNextWord();
+            startRSVP();
         }, 300);
     }
 }
@@ -864,27 +944,56 @@ function saveSettings() {
 
 function loadSavedSettings() {
     const saved = localStorage.getItem('biblia-rsvp-settings');
-    if (!saved) return;
+    if (!saved) return false;
     
     try {
         const s = JSON.parse(saved);
+        let restoredBookOrChapter = false;
+
         if (s.version) {
-            versionSelect.value = s.version;
-            populateBooks();
+            const hasVersion = [...versionSelect.options].some(o => o.value === s.version);
+            if (hasVersion) {
+                versionSelect.value = s.version;
+                populateBooks();
+            }
         }
-        if (s.book) bookSelect.value = s.book;
-        if (s.chapter) {
-            setTimeout(() => {
-                updateChapterOptions();
+
+        if (s.book && books.some(b => b.slug === s.book)) {
+            bookSelect.value = s.book;
+            restoredBookOrChapter = true;
+        }
+
+        if (s.chapter != null) {
+            // Make sure chapters dropdown matches the (restored or current) book
+            updateChapterOptions();
+            const hasChapter = [...chapterSelect.options].some(o => String(o.value) === String(s.chapter));
+            if (hasChapter) {
                 chapterSelect.value = s.chapter;
-            }, 50);
+                restoredBookOrChapter = true;
+            }
+        } else if (bookSelect.value) {
+            // Book restored but no chapter in saved: still populate its chapters
+            updateChapterOptions();
         }
+
         if (s.wpm) {
             wpm = s.wpm;
             wpmSlider.value = wpm;
             wpmValue.textContent = wpm;
         }
-    } catch (e) {}
+
+        if (s.chunkSize != null) {
+            chunkSize = Math.max(1, Math.min(5, parseInt(s.chunkSize) || 1));
+            document.querySelectorAll('.chunk-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`.chunk-btn[data-chunk="${chunkSize}"]`);
+            if (btn) btn.classList.add('active');
+            // If chunkSize 4/5 (from RSVP +/-), no settings button will be active; var is used in reader
+        }
+
+        return restoredBookOrChapter;
+    } catch (e) {
+        return false;
+    }
 }
 
 // Initialize everything
