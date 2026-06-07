@@ -1,8 +1,8 @@
 # Bíblia RSVP - Project Instruction Guide
 
-**Version:** June 2026 (i18n, multi-translations, S3 deploy)  
+**Version:** June 2026 (i18n, multi-translations, S3 deploy, primary domain live)  
 **Tech Stack:** Pure Vanilla HTML5 + CSS3 + JavaScript (No frameworks)  
-**Hosting:** AWS S3 static website — `bible-reading.online` via `./deploy.sh`  
+**Hosting:** AWS S3 (OAI-secured) + CloudFront (E1ZVWCS6KPUBYE) + Route53 — Primary: `https://bible-focus.site` (and www). Legacy bucket: bible-reading.online.  
 **Data Source:** `bible-api.com` (public-domain translations)  
 **UI:** English default + Portuguese toggle; light green theme
 
@@ -51,7 +51,8 @@ let font size (reader) = 3.5rem;  // Controlled by slider
 
 **History behavior:**
 - Keeps maximum **20** entries
-- Streak counts consecutive days only
+- Only records a chapter when the user finishes the RSVP reading (reaches the last word)
+- Streak counts consecutive *calendar* days of completed readings (fixed diff logic)
 
 **Ad behavior:**
 - Hidden automatically when `rsvp-modal` is open
@@ -116,8 +117,8 @@ This is where **95% of the logic** lives. Key sections (approximate line numbers
 
 ### History & Persistence
 
-- `saveHistory(entry)` — Called automatically after loading any chapter
-- `updateStreak()` — Calculates consecutive reading days
+- `saveHistory(entry)` — Called only when the user completes a full RSVP reading (in `finishReading()`), not on Load Chapter. This ensures history + streak reflect actual completed chapters.
+- `updateStreak()` — Calculates consecutive reading days (now using reliable calendar-day keys)
 - `loadSavedSettings()` / `saveSettings()` — Persists WPM + last selection
 
 ### PWA & UI
@@ -161,19 +162,36 @@ When asking an AI (Grok, Claude, Cursor, etc.) to modify the app, give it this f
 
 ---
 
-## 8. Deployment (AWS S3)
+## 8. Deployment (AWS S3 + CloudFront + Route53)
 
-**Bucket:** `bible-reading.online`
+**Bucket:** `bible-reading.online` (S3 access restricted to CloudFront OAI only)
+
+**Primary domain (2026-06):** `bible-focus.site` + `www.bible-focus.site`
+- Full Route53 hosted zone: `Z00132622YSKW24SS3C4L`
+- Route53 Nameservers (set at registrar):
+  - ns-1237.awsdns-26.org
+  - ns-1989.awsdns-56.co.uk
+  - ns-129.awsdns-16.com
+  - ns-668.awsdns-19.net
+- Alias A/AAAA records already point to CloudFront.
+- ACM cert requested (pending issuance).
+
+**CloudFront:** ID `E1ZVWCS6KPUBYE` → `https://dilbg8i3y2jdz.cloudfront.net/` (immediate HTTPS, default cert). Will be updated with custom cert + aliases once ACM is ISSUED.
 
 ```bash
 ./deploy.sh --dry-run   # preview
 ./deploy.sh -y          # deploy
 ```
 
-1. Run `deploy.sh` to sync app assets to S3  
-2. (Optional) CloudFront + `BIBLE_RSVP_CLOUDFRONT_ID` for invalidation  
-3. Replace AdSense placeholder in `index.html`  
-4. Hard-refresh after deploy; bump `CACHE_NAME` in `sw.js` when needed
+**Recommended:** `export BIBLE_RSVP_CLOUDFRONT_ID=E1ZVWCS6KPUBYE`
+
+1. Run `deploy.sh` (with CF ID for invalidation)
+2. **Critical registrar step:** At the place you bought `bible-focus.site`, change the nameservers to the 4 Route53 ones listed above (full delegation). Do not leave other records.
+3. Wait for ACM cert to become ISSUED + nameserver propagation.
+4. CF distribution will get `bible-focus.site` + `www` aliases + custom ACM cert attached.
+5. Replace AdSense placeholder, hard refresh, etc.
+
+**Note:** Direct S3 website is 403 (by design). Traffic goes through CloudFront. Old `bible-reading.online` remains as legacy.
 
 ---
 

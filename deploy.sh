@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy Bible RSVP static files to AWS S3.
+# Deploy Bible RSVP static files to AWS S3 (fronted by CloudFront for HTTPS).
 #
 # Usage:
 #   ./deploy.sh              # interactive confirm
@@ -9,8 +9,12 @@
 #
 # Environment:
 #   BIBLE_RSVP_S3_BUCKET       (default: bible-reading.online)
-#   BIBLE_RSVP_CLOUDFRONT_ID   optional CloudFront distribution ID
+#   BIBLE_RSVP_CLOUDFRONT_ID   CloudFront distribution ID for invalidation (recommended)
+#                              Current production: E1ZVWCS6KPUBYE (dilbg8i3y2jdz.cloudfront.net)
 #   AWS_PROFILE                optional AWS CLI profile
+#
+# Primary domain: https://bible-focus.site (Route53 + CloudFront + ACM)
+# After deploy with CLOUDFRONT_ID set, cache is invalidated automatically.
 
 set -euo pipefail
 
@@ -153,8 +157,15 @@ fi
 
 echo ""
 echo "Deploy finished successfully."
-echo "Website bucket: https://${BUCKET}.s3-website-us-east-1.amazonaws.com/"
-echo "Custom domain (if configured): https://${BUCKET}/"
+echo "S3 bucket (secured, access via CloudFront only): s3://$BUCKET/"
+echo ""
+echo "CloudFront distribution (HTTPS, use this for access):"
+echo "  https://dilbg8i3y2jdz.cloudfront.net/"
+echo "  (ID: E1ZVWCS6KPUBYE)"
+echo ""
+echo "Primary custom domain (Route53 + CloudFront):"
+echo "  https://bible-focus.site/   (and https://www.bible-focus.site/)"
+echo "  (after nameserver delegation at registrar + CF aliases/cert)"
 
 if [[ -n "${BIBLE_RSVP_CLOUDFRONT_ID:-}" ]]; then
   echo ""
@@ -166,5 +177,6 @@ if [[ -n "${BIBLE_RSVP_CLOUDFRONT_ID:-}" ]]; then
     --output json
 else
   echo ""
-  echo "Tip: set BIBLE_RSVP_CLOUDFRONT_ID to invalidate CloudFront after deploy."
+  echo "Tip: export BIBLE_RSVP_CLOUDFRONT_ID=E1ZVWCS6KPUBYE to auto-invalidate after deploy."
+  echo "Primary domain: bible-focus.site (see agent.md for Route53 + registrar setup)"
 fi

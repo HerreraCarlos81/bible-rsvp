@@ -73,3 +73,9 @@ Built with care for deeper engagement with the Word.
 ## For developers
 
 Technical architecture, deployment notes, and a change log for contributors live in **[agent.md](agent.md)**. Extended feature documentation is in **[instruction.md](instruction.md)** if present in your checkout.
+
+**Production hosting:** Fully configured — `https://bible-focus.site/` (and `www.bible-focus.site`) via CloudFront (E1ZVWCS6KPUBYE) + Route53 hosted zone.  
+S3 bucket is private (OAI only).  
+See **[agent.md](agent.md)** for full details (hosted zone ID, nameservers, ACM ARN, invalidation, deploy script).
+
+Legacy domain: bible-reading.online. S3 bucket is secured behind OAI (direct website endpoint returns 403).
