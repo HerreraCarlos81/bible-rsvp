@@ -125,6 +125,7 @@ SYNC_ARGS=(
   --include "sw.js"
   --include "css/*"
   --include "js/*"
+  --include "assets/*"
   --cache-control "public, max-age=300, must-revalidate"
   --metadata-directive REPLACE
 )

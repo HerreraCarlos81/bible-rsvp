@@ -2,15 +2,18 @@
 const BIBLE_API = 'https://bible-api.com/';
 const DEFAULT_WPM = 300;
 
-// Public-domain translations available on bible-api.com
+// Translations: most from bible-api.com; 'livre' (BibliaLivre) served as static JSON from S3
 const bibleVersions = [
-    { id: 'kjv', lang: 'en', nameKey: 'versionKjv' },
-    { id: 'web', lang: 'en', nameKey: 'versionWeb' },
-    { id: 'asv', lang: 'en', nameKey: 'versionAsv' },
-    { id: 'bbe', lang: 'en', nameKey: 'versionBbe' },
-    { id: 'darby', lang: 'en', nameKey: 'versionDarby' },
-    { id: 'almeida', lang: 'pt', nameKey: 'versionAlmeida' }
+    { id: 'kjv', lang: 'en', nameKey: 'versionKjv', source: 'api' },
+    { id: 'web', lang: 'en', nameKey: 'versionWeb', source: 'api' },
+    { id: 'asv', lang: 'en', nameKey: 'versionAsv', source: 'api' },
+    { id: 'bbe', lang: 'en', nameKey: 'versionBbe', source: 'api' },
+    { id: 'darby', lang: 'en', nameKey: 'versionDarby', source: 'api' },
+    { id: 'almeida', lang: 'pt', nameKey: 'versionAlmeida', source: 'api' },
+    { id: 'livre', lang: 'pt', nameKey: 'versionLivre', source: 's3' }
 ];
+
+const BIBLE_S3_BASE = 'https://bible-rsvp-bibles.s3.amazonaws.com/bibles/';
 
 function getBibleLang() {
     const v = bibleVersions.find(b => b.id === versionSelect.value);
@@ -508,40 +511,61 @@ function updateChapterOptions() {
     }
 }
 
-// Load chapter from bible-api.com (refactored for reuse)
+// Load chapter from bible-api.com (refactored for reuse) or S3 static JSON
 async function loadChapterData(bookSlug, chapterNum) {
     const version = versionSelect.value;
+    const versionInfo = bibleVersions.find(b => b.id === version) || {};
     const book = books.find(b => b.slug === bookSlug);
     if (!book) return false;
 
-    const url = buildChapterApiUrl(book, chapterNum, version);
-
     try {
-        const res = await fetch(url);
-        const data = await res.json().catch(() => ({}));
+        let currentReferenceLocal;
+        let versesData = [];
 
-        if (!res.ok || data.error) {
-            throw new Error(data.error || I18n.t('loadChapterError'));
-        }
-        if (!data.verses?.length && !data.text) {
-            throw new Error(I18n.t('loadChapterError'));
-        }
-
-        currentReference = data.reference;
-
-        if (data.verses && data.verses.length > 0) {
-            buildVersesFromStructured(data.verses);
-            previewText.innerHTML = data.verses
+        if (versionInfo.source === 's3') {
+            // Static JSON from our S3 bucket (Biblia Livre etc.)
+            const url = `${BIBLE_S3_BASE}livre/pt/${bookSlug}/${chapterNum}.json`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error('Failed to load chapter from S3 storage');
+            }
+            const data = await res.json();
+            currentReferenceLocal = `${getBookDisplayName(book)} ${chapterNum}`;
+            versesData = (data.verses || []).map(v => ({ verse: v.verse, text: v.text }));
+            buildVersesFromStructured(versesData);
+            previewText.innerHTML = versesData
                 .map(v => `<sup>${v.verse}</sup> ${(v.text || '').replace(/\n/g, ' ').trim()}`)
                 .join(' ');
         } else {
-            const rawText = data.text || '';
-            const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
-            currentWords = cleanText.split(/\s+/).filter(w => w.length > 0);
-            parseVerses(rawText);
-            previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
+            // Original bible-api.com
+            const url = buildChapterApiUrl(book, chapterNum, version);
+            const res = await fetch(url);
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok || data.error) {
+                throw new Error(data.error || I18n.t('loadChapterError'));
+            }
+            if (!data.verses?.length && !data.text) {
+                throw new Error(I18n.t('loadChapterError'));
+            }
+
+            currentReferenceLocal = data.reference;
+
+            if (data.verses && data.verses.length > 0) {
+                buildVersesFromStructured(data.verses);
+                previewText.innerHTML = data.verses
+                    .map(v => `<sup>${v.verse}</sup> ${(v.text || '').replace(/\n/g, ' ').trim()}`)
+                    .join(' ');
+            } else {
+                const rawText = data.text || '';
+                const cleanText = rawText.replace(/\d+\s/g, ' ').replace(/\s+/g, ' ').trim();
+                currentWords = cleanText.split(/\s+/).filter(w => w.length > 0);
+                parseVerses(rawText);
+                previewText.innerHTML = rawText.replace(/(\d+)\s/g, '<sup>$1</sup> ');
+            }
         }
 
+        currentReference = currentReferenceLocal;
         previewReference.textContent = currentReference;
         previewStats.textContent = formatPreviewStats(currentWords.length, verses.length);
 
